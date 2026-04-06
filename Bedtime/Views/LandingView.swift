@@ -11,7 +11,8 @@ struct LandingView: View {
     @EnvironmentObject var appState: AppState
     @State private var titleOpacity: Double = 0
     @State private var buttonOpacity: Double = 0
-    @State private var moonScale: CGFloat = 0.5
+    @State private var starScale: CGFloat = 1.2
+    @State private var starRotation: Double = 0
 
     var body: some View {
         ZStack {
@@ -26,25 +27,13 @@ struct LandingView: View {
             VStack(spacing: 40) {
                 Spacer()
 
-                // Moon illustration
-                ZStack {
-                    Circle()
-                        .fill(Color.yellow.opacity(0.9))
-                        .frame(width: 120, height: 120)
-                        .shadow(color: .yellow.opacity(0.6), radius: 20)
-
-                    // Craters on moon
-                    Circle()
-                        .fill(Color.yellow.opacity(0.6))
-                        .frame(width: 20, height: 20)
-                        .offset(x: -15, y: -10)
-
-                    Circle()
-                        .fill(Color.yellow.opacity(0.6))
-                        .frame(width: 15, height: 15)
-                        .offset(x: 20, y: 15)
-                }
-                .scaleEffect(moonScale)
+                // Single star (continues from shooting star)
+                Image(systemName: "star.fill")
+                    .font(.system(size: 80))
+                    .foregroundColor(.yellow)
+                    .shadow(color: .yellow.opacity(0.8), radius: 15)
+                    .scaleEffect(starScale)
+                    .rotationEffect(.degrees(starRotation))
 
                 // Title
                 VStack(spacing: 12) {
@@ -87,12 +76,21 @@ struct LandingView: View {
             }
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 0.8)) {
-                moonScale = 1.0
+            // Subtle settling animation from the shooting star
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.6)) {
+                starScale = 1.0
+            }
+
+            // Gentle rotation for a magical effect
+            withAnimation(.easeOut(duration: 1.0)) {
+                starRotation = 360
+            }
+
+            withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
                 titleOpacity = 1.0
             }
 
-            withAnimation(.easeOut(duration: 0.8).delay(0.3)) {
+            withAnimation(.easeOut(duration: 0.8).delay(0.5)) {
                 buttonOpacity = 1.0
             }
         }

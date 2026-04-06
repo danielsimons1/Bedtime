@@ -9,8 +9,10 @@ import SwiftUI
 
 struct SplashScreen: View {
     @EnvironmentObject var appState: AppState
-    @State private var shootingStarOffset: CGFloat = -200
+    @State private var shootingStarPosition: CGPoint = CGPoint(x: -200, y: 100)
     @State private var shootingStarOpacity: Double = 0
+    @State private var trailOpacity: Double = 1
+    @State private var starRotation: Double = -30
 
     var body: some View {
         ZStack {
@@ -34,8 +36,9 @@ struct SplashScreen: View {
             }
 
             // Shooting star
-            ShootingStarView()
-                .offset(x: shootingStarOffset, y: shootingStarOffset / 2)
+            ShootingStarView(trailOpacity: trailOpacity)
+                .rotationEffect(.degrees(starRotation))
+                .position(shootingStarPosition)
                 .opacity(shootingStarOpacity)
         }
         .onAppear {
@@ -44,22 +47,36 @@ struct SplashScreen: View {
     }
 
     private func animateShootingStar() {
-        withAnimation(.easeIn(duration: 0.5).delay(0.3)) {
+        let screenWidth = UIScreen.main.bounds.width
+        let finalX = screenWidth / 2
+        let finalY: CGFloat = 200
+
+        // Fade in
+        withAnimation(.easeIn(duration: 0.3).delay(0.3)) {
             shootingStarOpacity = 1
         }
 
-        withAnimation(.easeOut(duration: 1.5).delay(0.3)) {
-            shootingStarOffset = UIScreen.main.bounds.width + 200
+        // Move across and down to center position
+        withAnimation(.easeInOut(duration: 1.8).delay(0.3)) {
+            shootingStarPosition = CGPoint(x: finalX, y: finalY)
+        }
+
+        // Rotate to upright position and fade out trail
+        withAnimation(.easeOut(duration: 0.6).delay(1.7)) {
+            starRotation = 0
+            trailOpacity = 0
         }
 
         // Navigate to landing page after animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.4) {
             appState.navigateTo(.landing)
         }
     }
 }
 
 struct ShootingStarView: View {
+    var trailOpacity: Double
+
     var body: some View {
         ZStack {
             // Star trail
@@ -70,20 +87,15 @@ struct ShootingStarView: View {
             )
             .frame(width: 100, height: 2)
             .blur(radius: 2)
+            .opacity(trailOpacity)
+            .offset(x: -50)
 
-            // Star head
-            Circle()
-                .fill(Color.white)
-                .frame(width: 8, height: 8)
-                .overlay(
-                    Circle()
-                        .fill(Color.yellow.opacity(0.6))
-                        .blur(radius: 4)
-                        .frame(width: 16, height: 16)
-                )
-                .offset(x: 50)
+            // Star head (5-pointed star shape)
+            Image(systemName: "star.fill")
+                .font(.system(size: 40))
+                .foregroundColor(.yellow)
+                .shadow(color: .yellow.opacity(0.8), radius: 8)
         }
-        .rotationEffect(.degrees(-30))
     }
 }
 
